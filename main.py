@@ -16,10 +16,10 @@ import vanillaGAN as GAN
 
 ## this is a cuda implementation
 
-device = torch.device("mps")
+device = torch.device("cuda")
 
 
-"""
+
 ## copy pasted from Pytorch 
 torch.backends.fp32_precision = "tf32"
 torch.backends.cudnn.conv.fp32_precision = "tf32"
@@ -29,10 +29,10 @@ torch.backends.cudnn.conv.fp32_precision = "tf32"
 torch.backends.cuda.matmul.allow_tf32 = True
 
 # The flag below controls whether to allow TF32 on cuDNN. This flag defaults to True.
-torch.backends.cudnn.allow_tf32 = True"""
+torch.backends.cudnn.allow_tf32 = True
 
 
-
+batch_size = 128
 class MNIST_DataLoader(torch.utils.data.Dataset):
 
     def __init__(self,dir,device):
@@ -50,12 +50,12 @@ class MNIST_DataLoader(torch.utils.data.Dataset):
         #print(self.Data.shape)
         self.Data = (self.Data / 127.5) - 1
     def __len__(self):
-        return int((self.Labels.shape[0]//64)*64)
+        return int((self.Labels.shape[0]//batch_size)*batch_size)
         
     def __getitem__(self,index):
         return self.Data[index] , self.Labels[index]
 
-batch_size = 64
+
 seed_dim = 100
 
 Data = MNIST_DataLoader("",device)
@@ -65,11 +65,14 @@ train_dataloader = DataLoader(Data, batch_size=batch_size, shuffle=True)
 Generator = GAN.Generator(seedDim=seed_dim).to(device)
 Discriminator = GAN.Discriminator().to(device)
 
-criterion = nn.BCELoss()
-optimizerD = torch.optim.Adam(Discriminator.parameters(), lr=2e-4, betas=(0.5, 0.999))
-optimizerG = torch.optim.Adam(Generator.parameters(), lr=2e-4, betas=(0.5, 0.999))
+#Generator = torch.compile(Generator)
+#Discriminator= torch.compile(Discriminator)
 
-epochs = 1000
+criterion = nn.BCELoss()
+optimizerD = torch.optim.Adam(Discriminator.parameters(), lr=1e-4, betas=(0.5, 0.999))
+optimizerG = torch.optim.Adam(Generator.parameters(), lr=2.5e-4, betas=(0.5, 0.999))
+
+epochs = 100
 
 lossesG = []
 lossesD = []
@@ -111,7 +114,7 @@ for ep in range(epochs):
         Loss_G = criterion(output,Real_Label)
         Loss_G.backward()
         optimizerG.step()
-        if i % 500 == 0:
+        if i % 100 == 0:
             lossesG.append(Loss_G.detach())
             lossesD.append(Loss_D.detach())
             info = f"Epoch {ep} : Step {i} \n: Generator Loss: {Loss_G.detach()} : Discriminator Loss: {Loss_D.detach()} : \n D_x -> {D_x} : D_G_z -> {D_G_z} : D_G_z2 -> {D_G_z2}"
@@ -120,7 +123,7 @@ for ep in range(epochs):
             print("==========================")
             print(f"Epoch {ep} : Step {i} \n: Generator Loss: {Loss_G} : Discriminator Loss: {Loss_D} : \n D_x -> {D_x} : D_G_z -> {D_G_z} : D_G_z2 -> {D_G_z2}")
             print("==========================")
-    """
+    
     if ((ep % 50) == 0) and (ep != 0):
         ts = time.time()
         stmp = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
@@ -137,7 +140,7 @@ for ep in range(epochs):
             'LossesG':lossesG,
             'LossesD':lossesD,
             'GAN':True
-                    }, f'Checkpoint_Meta.pt')"""
+                    }, f'Checkpoint_Meta.pt')
             
 ts = time.time()
 stmp = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')

@@ -1,8 +1,6 @@
 import torch
 import torch.nn as nn
 
-
-
 class Generator(nn.Module):
 
     def __init__(self,seedDim):
@@ -43,7 +41,7 @@ class Discriminator(nn.Module):
             nn.LeakyReLU(0.2),
 
             nn.Linear(4*4, 1),
-            nn.Sigmoid(),
+        
             )
         for m in self.M1:
             if isinstance(m, (nn.Linear)):
@@ -52,4 +50,3 @@ class Discriminator(nn.Module):
     def forward(self,X):
         X = self.M1(X)
         return X
-
