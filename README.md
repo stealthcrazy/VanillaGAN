@@ -142,7 +142,7 @@ so a run can be resumed or sampled from directly. For sampling, open
   and the failure mode.
 - Dataset was MNIST Letters.
 - Weights are not included as file size to large for GitHub. Can be requested.
-- DCGAN variants for WGAN and GAN are in a private repo
+- DCGAN variants for  WGAN and GAN (Trained on CIFAR 10) are in a private repo
 
 ## References
 
